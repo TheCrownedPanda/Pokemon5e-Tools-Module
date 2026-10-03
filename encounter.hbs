@@ -1,0 +1,100 @@
+<div class="pk5e-root">
+{{#if bestiaryMissing}}
+<p class="pk5e-warning"><i class="fa-solid fa-triangle-exclamation"></i> The Pokémon 5e bestiary compendium was not found. Make sure the Pokémon 5e module is active.</p>
+{{/if}}
+
+<section class="pk5e-section">
+	<h3>Party</h3>
+	{{#each players}}
+	<div class="pk5e-player">
+		<span class="pk5e-player-label">Player {{number}}</span>
+		<label>Level <input type="number" name="players.{{index}}.level" value="{{level}}" min="1" max="20"></label>
+		<label>Pokémon <input type="number" name="players.{{index}}.numberOfPokemon" value="{{numberOfPokemon}}" min="1"></label>
+		{{#if canRemove}}<button type="button" class="icon" data-action="removePlayer" data-index="{{index}}" data-tooltip="Remove player"><i class="fa-solid fa-trash"></i></button>{{/if}}
+	</div>
+	{{/each}}
+	<div class="pk5e-row">
+		<button type="button" data-action="addPlayer"><i class="fa-solid fa-plus"></i> Add Player</button>
+		<button type="button" data-action="loadParty"><i class="fa-solid fa-users"></i> Load Player Characters</button>
+	</div>
+</section>
+
+<section class="pk5e-section">
+	<h3>Configuration</h3>
+	<div class="pk5e-grid">
+		<label>Biome <select name="biome">{{#each biomeOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+		<label>Type in common <select name="type">{{#each typeOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+		<label>Region filter <select name="regionType">{{#each regionTypeOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+		<label>Region <select name="regionName">{{#each regionOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+		<label>Difficulty <select name="difficulty">{{#each difficultyOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+		<label>Pokémon limit
+			<span class="pk5e-inline">
+				<select name="limited">{{#each limitedOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+				{{#if limited}}<input type="number" name="limit" value="{{limit}}" min="1">{{/if}}
+			</span>
+		</label>
+		<label>Rarity (SR) from <select name="minSr">{{#each minSrOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+		<label>Rarity (SR) up to <select name="maxSr">{{#each maxSrOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+	</div>
+	<label class="pk5e-check"><input type="checkbox" name="placeOnScene" {{#if placeOnScene}}checked{{/if}}> Place tokens on the scene <span class="pk5e-hint">(untick to only create the Pokémon in the Actors tab)</span></label>
+	<label class="pk5e-check"><input type="checkbox" name="forceShiny" {{#if forceShiny}}checked{{/if}}> Guarantee at least one shiny <span class="pk5e-hint">(every encounter will include one)</span></label>
+	<p class="pk5e-budget"><strong>{{budget}} XP</strong> budget · shiny odds 1 in {{shinyOdds}}</p>
+</section>
+
+<section class="pk5e-section">
+	<h3>Guaranteed Pokémon</h3>
+	{{#each pins}}
+	<div class="pk5e-pin">
+		<span class="pk5e-name">{{name}}</span>
+		<label>Lv <select name="pins.{{index}}.level">{{#each levelOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+		<label>×<input type="number" name="pins.{{index}}.count" value="{{count}}" min="1"></label>
+		<label class="pk5e-check"><input type="checkbox" name="pins.{{index}}.shiny" {{#if shiny}}checked{{/if}}> ✨</label>
+		<button type="button" class="icon" data-action="removePin" data-index="{{index}}" data-tooltip="Remove"><i class="fa-solid fa-trash"></i></button>
+	</div>
+	{{/each}}
+	<div class="pk5e-row">
+		<input type="text" id="pk5e-pin-input" list="pk5e-species-list" placeholder="Type a Pokémon name, e.g. Sprigatito" value="{{pinText}}" autocomplete="off" style="flex: 1">
+		<datalist id="pk5e-species-list">{{#each speciesNames}}<option value="{{this}}"></option>{{/each}}</datalist>
+		<button type="button" data-action="addPin"><i class="fa-solid fa-plus"></i> Add</button>
+	</div>
+	<p class="pk5e-hint">Always included in the encounter. Level "Auto" rolls one like the others. They count toward the XP budget, and the rest of the encounter is rolled to fill what is left.</p>
+</section>
+
+<div class="pk5e-row pk5e-actions">
+	<button type="button" class="pk5e-primary" data-action="generate"><i class="fa-solid fa-dice"></i> Generate Encounter</button>
+	<button type="button" class="pk5e-small" data-action="cleanup" data-tooltip="Delete generated Pokémon that are not on a scene and not owned by a player"><i class="fa-solid fa-broom"></i> Clean Up</button>
+</div>
+
+{{#if noMatches}}
+<p class="pk5e-warning">No Pokémon matched those filters and budget. Try loosening them.</p>
+{{/if}}
+
+{{#if hasEncounter}}
+<section class="pk5e-section">
+	<h3>Encounter <span class="pk5e-badge" style="background: {{difficulty.color}}">{{difficulty.label}}</span></h3>
+	<ul class="pk5e-results">
+		{{#each rows}}
+		<li>
+			<img src="{{img}}" alt="{{name}}">
+			<span class="pk5e-name">{{#if pinned}}<i class="fa-solid fa-thumbtack" data-tooltip="Guaranteed"></i> {{/if}}{{name}}</span>
+			<span class="pk5e-sr">SR {{sr}}</span>
+			<span>Lv {{level}}</span>
+			<span>×{{count}}</span>
+			{{#if shiny}}<span class="pk5e-shiny" data-tooltip="Shiny">✨×{{shiny}}</span>{{/if}}
+			<span class="pk5e-xp">{{exp}} XP</span>
+		</li>
+		{{/each}}
+	</ul>
+	<p>{{totalCount}} Pokémon · {{totalExp}} XP of {{budget}} XP budget{{#if shinyCount}} · {{shinyCount}} shiny ✨{{/if}}</p>
+	{{#if overLimit}}<p class="pk5e-warning">That is more than 20 Pokémon; consider using a Pokémon limit.</p>{{/if}}
+	<div class="pk5e-row">
+		<button type="button" class="pk5e-primary" data-action="place" {{#if placing}}disabled{{/if}}>
+			{{#if placing}}<i class="fa-solid fa-spinner fa-spin"></i> Working...{{else}}<i class="fa-solid {{createIcon}}"></i> {{createLabel}}{{/if}}
+		</button>
+		<button type="button" data-action="makeShiny" data-tooltip="Turn one more random Pokémon in this encounter into a shiny"><i class="fa-solid fa-wand-magic-sparkles"></i> Make One Shiny</button>
+		<button type="button" data-action="generate"><i class="fa-solid fa-rotate"></i> Reroll</button>
+		<button type="button" data-action="clear"><i class="fa-solid fa-xmark"></i> Clear</button>
+	</div>
+</section>
+{{/if}}
+</div>
