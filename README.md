@@ -13,7 +13,7 @@ I made it because building encounters by hand every session was eating my prep t
 ## Installing
 Paste this manifest URL into Foundry's Install Module screen:
 
-`https://github.com/YOURNAME/Pokemon5e-Tools-Module/releases/latest/download/module.json`
+`https://github.com/TheCrownedPanda/Pokemon5e-Tools-Module/releases/latest/download/module.json`
 
 Or unzip the release into `Data/modules`, restart Foundry and turn it on in your world. Turn on Pokémon 5e too.
 
