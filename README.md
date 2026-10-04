@@ -4,6 +4,7 @@ A Foundry module with extra tools for people running Pokémon 5e: a random encou
 
 I made it because building encounters by hand every session was eating my prep time. It also has a Pokédex for your players, which is the part my table likes most.
 
+**Heads up on how it was made:** I came up with the feature list and tested everything at my own table, but the code was written with AI help (Claude). If that's a dealbreaker for you, no hard feelings. If you do read the code and find a bug, please open an issue.
 
 ## What you need
 - Foundry v13 or newer (I run v14)
@@ -37,6 +38,19 @@ Each Pokémon is a fresh copy. The module raises its class level and HP, picks u
 
 The budget math is the same as poke5e.app: party levels x 50, plus 10% per extra Pokémon per player, times 1 / 1.5 / 2 for difficulty. XP per Pokémon is either the 2024 formula or the 2018 table (module setting).
 
+## Loot generator
+GM only. Click the gem icon in the token controls, or the Loot button at the top of the Actors tab. Macro: `game.modules.get("pokemon5e-encounters").api.openLoot()`
+
+It rolls items from the Pokémon 5e "Items & Consumables" compendium. The categories are the compendium's own folders, each with a checkbox. Medicine and Poké Balls are on by default and come up 3x as often as anything else you switch on. Evolutionary items, berries, held items, TMs, battle items and the rest are opt-in.
+
+- **Environment:** pick a biome and items that suit it are 3x as likely (Water Stone by the ocean, Fire Stone near a volcano, berries in forests, shop items in cities).
+- **Highest rarity:** caps what can roll. Rarer items are less likely in general.
+- **Number of items**, with an option for cheap items to come in small stacks.
+- **Lock** rows you like and reroll the rest, change quantities, or remove rows.
+- **Give to Character:** adds the items to a player character's inventory. If they already have the item it adds to the stack (you can turn that off to always create a new item).
+- **Create Items:** makes the items as world Items in a dated "Loot" folder so you can drag them out yourself.
+- **Post to Chat** lists them for the table.
+
 ## Pokédex
 Everyone gets a Pokédex button. Every account has its own.
 
@@ -46,6 +60,13 @@ Everyone gets a Pokédex button. Every account has its own.
 - **GM tools:** look at any player's Pokédex, set entries to unseen/seen/caught, register what a player owns, scan the scene for a player, or clear one Pokédex (or all of them). Clearing keeps owned Pokémon as caught.
 
 Only official species are in there, no fakemon.
+
+## Fakemon (optional)
+Off by default. Turn on **Include Fakemon** in the module settings (and reload Foundry) to add them to both the encounter generator and the Pokédex:
+- poke5e's 12 older fakemon (Rookite, Belseraph, Droideon, Brawleon, Specteon, Toxeon, Minereon, Aereon, Pesteon, Terreon, Drakeon, Eeveon). They don't have actors in the Pokémon 5e bestiary, so the module builds one from poke5e's stat block when they're placed. Art is loaded from poke5e.app and credited to the original artists in the Pokédex.
+- Any actor in your Pokémon 5e bestiary compendium that isn't an official species, read straight from the actor.
+
+Fakemon count as living in every biome and region (they only get filtered by SR and type), have no shiny art, and show up in the Pokédex as F01, F02... (poke5e's) or C01, C02... (custom).
 
 ## Good to know
 - Shiny art and the Pokédex pictures load from poke5e.app, so if their site goes down those images will too.

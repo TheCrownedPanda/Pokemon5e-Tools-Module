@@ -4,6 +4,7 @@ import {
 	SR_VALUES, srLabel, sortEncounter, rollShinies, makeOneShiny, totalShinies,
 } from "./generator.js";
 import { scaleActorToLevel } from "./scaling.js";
+import { fakemonEnabled, scanCustomSpecies, toEncounterSpecies, buildFakemonActorData, artUrl } from "./fakemon.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -19,6 +20,17 @@ let dataPromise = null;
 const loadData = () => (dataPromise ??= fetch(foundry.utils.getRoute(DATA_PATH)).then((r) => {
 	if (!r.ok) throw new Error(`Could not load ${DATA_PATH} (HTTP ${r.status}). Is the module folder named "${MODULE_ID}"?`);
 	return r.json();
+}).then(async (data) => {
+	// Fakemon are only in the pool when the "Include Fakemon" setting is on.
+	const official = data.species.filter((s) => !s.fk);
+	if (fakemonEnabled()) {
+		const known = new Set(official.flatMap((s) => s.actors));
+		const custom = (await scanCustomSpecies(known)).map(toEncounterSpecies);
+		data.species = [...official, ...data.species.filter((s) => s.fk), ...custom];
+	} else {
+		data.species = official;
+	}
+	return data;
 }).catch((err) => { dataPromise = null; throw err; }));
 
 function xpEdition() {
@@ -103,7 +115,7 @@ export class PokemonEncounterApp extends HandlebarsApplicationMixin(ApplicationV
 			rows: s.encounter.map((e) => ({
 				name: e.species.name, level: e.level, count: e.count, shiny: e.shiny ?? 0, pinned: !!e.pinned, sr: srLabel(e.species.sr),
 				exp: e.exp * e.count,
-				img: pack?.index?.find((i) => i.name === e.species.actors[0])?.img ?? "icons/svg/mystery-man.svg",
+				img: e.species.art ? artUrl(this.#data.shinyBaseUrl ?? "https://poke5e.app", e.species.art) : (pack?.index?.find((i) => i.name === e.species.actors[0])?.img ?? "icons/svg/mystery-man.svg"),
 			})),
 			totalExp: exp,
 			totalCount: count,
@@ -294,9 +306,10 @@ export class PokemonEncounterApp extends HandlebarsApplicationMixin(ApplicationV
 		let failed = 0;
 		for (const [n, { entry, level, shiny }] of individuals.entries()) {
 			const names = entry.species.actors;
-			const actorName = names[Math.floor(Math.random() * names.length)];
+			const isBuilt = !!entry.species.fk; // poke5e fakemon have no bestiary actor; theirs is built from the stat block
+			const actorName = isBuilt ? entry.species.name : names[Math.floor(Math.random() * names.length)];
 			const id = idByName.get(actorName);
-			if (!id) { console.warn(`${MODULE_ID} | "${actorName}" is not in the bestiary; skipping.`); failed++; continue; }
+			if (!id && !isBuilt) { console.warn(`${MODULE_ID} | "${actorName}" is not in the bestiary; skipping.`); failed++; continue; }
 
 			const updateData = {
 				folder: folder.id,
@@ -309,8 +322,13 @@ export class PokemonEncounterApp extends HandlebarsApplicationMixin(ApplicationV
 			}
 			// Build a brand-new actor from a clean copy of the compendium data. (Foundry's own import helper can
 			// reuse an actor you already imported earlier, and this module must never touch existing actors.)
-			const source = await pack.getDocument(id);
-			const data = source.toObject();
+			let data;
+			if (isBuilt) {
+				try { data = await buildFakemonActorData(entry.species.id); }
+				catch (err) { failed++; console.error(`${MODULE_ID} | Could not build ${actorName}`, err); continue; }
+			} else {
+				data = (await pack.getDocument(id)).toObject();
+			}
 			delete data._id;
 			delete data._stats;
 			delete data.sort;

@@ -1,3 +1,4 @@
+import { fakemonEnabled, scanCustomSpecies, artUrl } from "./fakemon.js";
 import {
 	buildNameIndex, speciesIdFromName, emptyDex, statusOf, counts, seenLine, fullInfo,
 } from "./pokedex-logic.js";
@@ -13,7 +14,19 @@ let dataPromise = null;
 export const loadPokedexData = () => (dataPromise ??= fetch(foundry.utils.getRoute(DATA_PATH)).then((r) => {
 	if (!r.ok) throw new Error(`Could not load ${DATA_PATH} (HTTP ${r.status}).`);
 	return r.json();
-}).then((data) => {
+}).then(async (data) => {
+	// Fakemon are only part of the Pokédex when the "Include Fakemon" setting is on.
+	const official = data.species.filter((s) => !s.fk);
+	if (fakemonEnabled()) {
+		const known = new Set(official.flatMap((s) => s.a ?? []));
+		data.species = [...official, ...data.species.filter((s) => s.fk), ...(await scanCustomSpecies(known))];
+	} else {
+		data.species = official;
+	}
+	// Dex labels: official species use their number, poke5e's fakemon F01..., custom bestiary fakemon C01...
+	data.labels = new Map();
+	let customCount = 0;
+	for (const s of data.species) data.labels.set(s.id, s.fk ? `F${String(s.f).padStart(2, "0")}` : s.custom ? `C${String(++customCount).padStart(2, "0")}` : String(s.n).padStart(3, "0"));
 	data.index = buildNameIndex(data.species);
 	data.byId = new Map(data.species.map((s) => [s.id, s]));
 	return data;
@@ -171,12 +184,12 @@ export class PokedexApp extends HandlebarsApplicationMixin(ApplicationV2) {
 			const status = statusOf(dex, s.id);
 			const known = status !== "unseen";
 			const shiny = !!(dex.caught[s.id]?.shiny || dex.seen[s.id]?.shiny);
-			const number = String(s.n).padStart(3, "0");
+			const number = data.labels.get(s.id);
 			const showName = known || revealAll;
 			return {
 				id: s.id, number, status, known, shiny, caughtMark: status === "caught",
 				label: showName ? s.name : "",
-				sprite: known && s.img.sprite ? `${base}${shiny && s.img.spriteShiny ? s.img.spriteShiny : s.img.sprite}` : "",
+				sprite: known && (s.img.sprite || s.img.main) ? artUrl(base, shiny && s.img.spriteShiny ? s.img.spriteShiny : (s.img.sprite ?? s.img.main)) : "",
 				selected: s.id === this.#selected,
 				filterName: (showName ? `${s.name} #${number}` : `#${number}`).toLowerCase(),
 			};
@@ -196,7 +209,7 @@ export class PokedexApp extends HandlebarsApplicationMixin(ApplicationV2) {
 			detail: this.#detail(data, dex, revealAll),
 			showField: !isGM,
 			field: detected.map((f) => ({ ...f, name: data.byId.get(f.id).name, isNew: freshIds.has(f.id) })),
-			banner: fresh.map((f) => ({ name: data.byId.get(f.id).name, number: data.byId.get(f.id).n > 0 ? `#${String(data.byId.get(f.id).n).padStart(3, "0")}` : "", shiny: f.shiny })),
+			banner: fresh.map((f) => ({ name: data.byId.get(f.id).name, number: `#${data.labels.get(f.id)}`, shiny: f.shiny })),
 		};
 	}
 
@@ -210,12 +223,14 @@ export class PokedexApp extends HandlebarsApplicationMixin(ApplicationV2) {
 		return {
 			id: s.id,
 			locked: !revealed,
-			number: s.n > 0 ? `#${String(s.n).padStart(3, "0")}` : "",
+			number: `#${data.labels.get(s.id)}`,
+			credit: revealed && s.credit ? s.credit : null,
+			fakemon: !!(s.fk || s.custom),
 			name: revealed ? s.name : "",
 			status, statusLabel: { unseen: "Not yet seen", seen: "Seen", caught: "Caught" }[status],
 			isUnseen: status === "unseen", isSeen: status === "seen", isCaught: status === "caught",
 			shiny,
-			img: revealed && art ? `${data.baseUrl}${art}` : "",
+			img: revealed && art ? artUrl(data.baseUrl, art) : "",
 			types: revealed ? s.t.map(cap) : [],
 			desc: revealed ? s.desc : "",
 			habitat: revealed ? seenLine(s, data.biomes) : "",

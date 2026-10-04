@@ -65,11 +65,13 @@ export function encounterDifficulty(currentExp, budget, difficulty) {
 export function filterPool(species, { biome = "", type = "", regionType = "native", regionName = "", minSr = null, maxSr = null } = {}) {
 	const region = regionName.trim().toLowerCase();
 	return species.filter((s) => {
+		// Fakemon have no known habitat, so they are treated as living anywhere (only SR and type can filter them out).
+		const unknownHabitat = !!(s.fk || s.custom);
 		if (minSr != null && s.sr < minSr) return false;
 		if (maxSr != null && s.sr > maxSr) return false;
-		if (biome && !s.biomes.includes(biome)) return false;
+		if (biome && !unknownHabitat && !s.biomes.includes(biome)) return false;
 		if (type && !s.type.includes(type)) return false;
-		if (region) {
+		if (region && !unknownHabitat) {
 			if (regionType === "native") { if ((s.native ?? "").toLowerCase() !== region) return false; }
 			else if (!s.regions.some((r) => r.toLowerCase() === region)) return false;
 		}
@@ -92,7 +94,7 @@ export function generateEncounter({ pool, targetExp, pokemonLimit = Infinity, ma
 		const level = clampLevel(pin.level ?? Math.floor(random() * maxLevel) + 1, pin.species.minLevel);
 		const exp = experienceAwarded(level, pin.species.sr, edition);
 		const count = Math.max(1, pin.count ?? 1);
-		result.push({ species: pin.species, level, count, exp, pinned: true, shiny: pin.shiny ? count : 0 });
+		result.push({ species: pin.species, level, count, exp, pinned: true, shiny: pin.shiny && pin.species.shiny ? count : 0 });
 		currentExp += (Number.isNaN(exp) ? 0 : exp) * count;
 		currentCount += count;
 	}
@@ -143,6 +145,7 @@ export function rollShinies(encounter, odds, random = Math.random) {
 	for (const group of encounter) {
 		if (group.pinned) continue; // guaranteed Pokémon keep exactly the shiny setting you chose
 		group.shiny = 0;
+		if (!group.species.shiny) continue; // no shiny artwork exists for this species (fakemon)
 		if (odds > 0) for (let i = 0; i < group.count; i++) if (random() * odds < 1) group.shiny++;
 	}
 	return encounter;
@@ -150,7 +153,7 @@ export function rollShinies(encounter, odds, random = Math.random) {
 
 /** Turns one more random non-shiny Pokémon into a shiny. Returns false if they all already are. */
 export function makeOneShiny(encounter, random = Math.random) {
-	const candidates = encounter.flatMap((group) => Array(group.count - (group.shiny ?? 0)).fill(group));
+	const candidates = encounter.filter((group) => group.species.shiny).flatMap((group) => Array(group.count - (group.shiny ?? 0)).fill(group));
 	if (!candidates.length) return false;
 	const group = candidates[Math.floor(random() * candidates.length)];
 	group.shiny = (group.shiny ?? 0) + 1;

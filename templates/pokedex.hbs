@@ -69,6 +69,8 @@
 			<p class="pk5e-hint">Nothing is known about this Pokémon yet. It is registered when its Pokédex is opened while one is in view.</p>
 			{{else}}
 			{{#if detail.img}}<img class="pk5e-portrait" src="{{detail.img}}" alt="{{detail.name}}">{{/if}}
+			{{#if detail.credit}}<p class="pk5e-hint">Art by {{#if detail.credit.link}}<a href="{{detail.credit.link}}" target="_blank" rel="noopener">{{detail.credit.author}}</a>{{else}}{{detail.credit.author}}{{/if}}</p>{{/if}}
+			{{#if detail.fakemon}}<p class="pk5e-hint">Fakemon (not an official Pokémon).</p>{{/if}}
 			<div class="pk5e-types">{{#each detail.types}}<span class="pk5e-type">{{this}}</span>{{/each}}</div>
 			<p class="pk5e-flavor">{{detail.desc}}</p>
 			<p class="pk5e-habitat">{{detail.habitat}}</p>
