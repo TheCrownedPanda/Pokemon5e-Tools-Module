@@ -1,0 +1,80 @@
+<div class="pk5e-root">
+{{#if error}}
+<p class="pk5e-warning"><i class="fa-solid fa-triangle-exclamation"></i> {{error}}</p>
+{{else}}
+
+<section class="pk5e-section">
+	<h3>Settings</h3>
+	<div class="pk5e-grid">
+		<label>Environment <select name="biome">{{#each biomeOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+		<label>Number of items <input type="number" name="count" value="{{count}}" min="1" max="30"></label>
+		<label>Highest rarity <select name="maxRarity">{{#each rarityOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+	</div>
+	<label class="pk5e-check"><input type="checkbox" name="stacks" {{#if stacks}}checked{{/if}}> Cheap items can come in small stacks <span class="pk5e-hint">(common items up to 3)</span></label>
+	<p class="pk5e-hint">Items that suit the environment come up {{environmentBoost}}× as often. Medicine and Poké Balls come up {{primaryWeight}}× as often as the other categories.</p>
+</section>
+
+<section class="pk5e-section">
+	<h3>Categories <span class="pk5e-hint">{{enabledCount}} on</span></h3>
+	<div class="pk5e-row">
+		<button type="button" class="pk5e-small" data-action="selectDefaults">Medicine + Poké Balls</button>
+		<button type="button" class="pk5e-small" data-action="selectAll">All</button>
+		<button type="button" class="pk5e-small" data-action="selectNone">None</button>
+	</div>
+	<div class="pk5e-loot-groups">
+		{{#each groups}}
+		<div class="pk5e-loot-group {{#if primary}}primary{{/if}}">
+			{{#if single}}
+			{{#each categories}}
+			<label class="pk5e-check pk5e-loot-head"><input type="checkbox" name="cat.{{key}}" data-group="{{../key}}" {{#if checked}}checked{{/if}}> {{../name}} <span class="pk5e-hint">({{count}})</span></label>
+			{{/each}}
+			{{else}}
+			<label class="pk5e-check pk5e-loot-head"><input type="checkbox" data-group-toggle="{{key}}" {{#if allChecked}}checked{{/if}}> {{name}}</label>
+			<div class="pk5e-loot-subs">
+				{{#each categories}}
+				<label class="pk5e-check"><input type="checkbox" name="cat.{{key}}" data-group="{{../key}}" {{#if checked}}checked{{/if}}> {{label}} <span class="pk5e-hint">({{count}})</span></label>
+				{{/each}}
+			</div>
+			{{/if}}
+		</div>
+		{{/each}}
+	</div>
+</section>
+
+<div class="pk5e-row pk5e-actions">
+	<button type="button" class="pk5e-primary" data-action="generate"><i class="fa-solid fa-dice"></i> {{#if hasLoot}}Reroll{{else}}Generate Loot{{/if}}</button>
+	{{#if hasLoot}}<button type="button" class="pk5e-small" data-action="clear"><i class="fa-solid fa-xmark"></i> Clear</button>{{/if}}
+</div>
+
+{{#if noMatches}}
+<p class="pk5e-warning">Nothing matched. Switch on more categories or raise the highest rarity.</p>
+{{/if}}
+
+{{#if hasLoot}}
+<section class="pk5e-section">
+	<h3>Loot</h3>
+	<ul class="pk5e-results pk5e-loot-results">
+		{{#each rows}}
+		<li>
+			<img src="{{img}}" alt="{{name}}">
+			<span class="pk5e-name">{{name}}<br><span class="pk5e-hint">{{category}} · {{rarityLabel}} · {{priceLabel}}</span></span>
+			<label data-tooltip="Quantity">×<input type="number" name="rows.{{index}}.quantity" value="{{quantity}}" min="1" max="99"></label>
+			<label class="pk5e-check" data-tooltip="Keep this item when you reroll"><input type="checkbox" name="rows.{{index}}.locked" {{#if locked}}checked{{/if}}><i class="fa-solid fa-lock"></i></label>
+			<button type="button" class="icon" data-action="removeRow" data-index="{{index}}" data-tooltip="Remove"><i class="fa-solid fa-trash"></i></button>
+		</li>
+		{{/each}}
+	</ul>
+	<div class="pk5e-row">
+		<select name="actorId" style="flex: 1">{{#each actorOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+		<button type="button" class="pk5e-primary" data-action="give" {{#if busy}}disabled{{/if}}><i class="fa-solid fa-hand-holding-heart"></i> Give to Character</button>
+	</div>
+	<label class="pk5e-check"><input type="checkbox" name="stackExisting" {{#if stackExisting}}checked{{/if}}> Add to a stack if the character already has the item <span class="pk5e-hint">(otherwise a new item is always created)</span></label>
+	{{#if noCharacters}}<p class="pk5e-hint">No player characters found. Use "Create Items" and drag them out instead.</p>{{/if}}
+	<div class="pk5e-row">
+		<button type="button" data-action="createItems" {{#if busy}}disabled{{/if}} data-tooltip="Create these as world Items in a dated Loot folder, so you can drag them to anyone"><i class="fa-solid fa-folder-plus"></i> Create Items</button>
+		<button type="button" data-action="toChat" data-tooltip="Post the list to chat"><i class="fa-solid fa-comment"></i> Post to Chat</button>
+	</div>
+</section>
+{{/if}}
+{{/if}}
+</div>
