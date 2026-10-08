@@ -1,0 +1,74 @@
+<div class="pk5e-root">
+{{#if error}}
+<p class="pk5e-warning"><i class="fa-solid fa-triangle-exclamation"></i> {{error}}</p>
+{{else}}
+
+<section class="pk5e-section">
+	<h3>Shop</h3>
+	<div class="pk5e-grid">
+		<label>Shop <select name="presetId">{{#each presetGroups}}<optgroup label="{{label}}">{{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</optgroup>{{/each}}</select></label>
+		<label>Shop name <input type="text" name="shopName" value="{{shopName}}"></label>
+		<label>Price adjustment <span class="pk5e-inline"><input type="number" name="percent" value="{{percent}}" min="0" max="1000"> %</span></label>
+		<label>Extra random items <input type="number" name="extras" value="{{extras}}" min="0" max="20"></label>
+	</div>
+	<p class="pk5e-hint">Prices start at the Items &amp; Consumables compendium price. The adjustment scales every price that you haven't edited by hand. Stock is unlimited. "Extra random items" adds Medicine, Poké Ball and Battle Item stock when you generate.</p>
+	<div class="pk5e-row">
+		<button type="button" class="pk5e-primary" data-action="generate"><i class="fa-solid fa-dice"></i> Generate Inventory</button>
+		<button type="button" class="pk5e-small" data-action="saveShop" data-tooltip="{{#if isSaved}}Save your changes to this shop{{else}}Save this shop so it's here next time{{/if}}"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+		{{#if isSaved}}<button type="button" class="pk5e-small" data-action="saveShopNew" data-tooltip="Save a copy under the shop name above"><i class="fa-solid fa-copy"></i> Save as New</button>
+		<button type="button" class="pk5e-small" data-action="deleteShop" data-tooltip="Delete this saved shop"><i class="fa-solid fa-trash"></i></button>{{/if}}
+		<button type="button" class="pk5e-small" data-action="resetPrices" data-tooltip="Back to compendium prices (keeps the price adjustment)"><i class="fa-solid fa-rotate-left"></i> Reset Prices</button>
+	</div>
+	{{#if missing}}<p class="pk5e-hint">Not in the compendium, so not included: {{missing}}</p>{{/if}}
+</section>
+
+<section class="pk5e-section">
+	<h3>Inventory</h3>
+	{{#if hasRows}}
+	<ul class="pk5e-results pk5e-shop-results">
+		<li class="pk5e-shop-head"><span style="flex: 0 0 32px"></span><span class="pk5e-name">Item</span><span class="pk5e-shop-col">Price</span><span class="pk5e-shop-col">Buy</span><span class="pk5e-shop-total">Cost</span><span class="pk5e-shop-x"></span></li>
+		{{#each rows}}
+		<li>
+			<img src="{{img}}" alt="{{name}}">
+			<span class="pk5e-name">{{name}}{{#if custom}} <span class="pk5e-hint">(custom)</span>{{/if}}<br><span class="pk5e-hint">{{#if category}}{{category}} · {{/if}}{{rarityLabel}}{{#if edited}} · normally {{defaultPrice}}{{/if}}</span></span>
+			<input class="pk5e-shop-col {{#if edited}}edited{{/if}}" type="number" name="rows.{{index}}.price" value="{{price}}" min="0" data-tooltip="Price each ({{denomination}})">
+			<input class="pk5e-shop-col" type="number" name="rows.{{index}}.qty" value="{{qty}}" min="0" max="999" data-tooltip="How many to buy">
+			<span class="pk5e-shop-total">{{lineTotal}}</span>
+			<button type="button" class="icon pk5e-shop-x" data-action="removeRow" data-index="{{index}}" data-tooltip="Remove from this shop"><i class="fa-solid fa-trash"></i></button>
+		</li>
+		{{/each}}
+	</ul>
+	{{else}}
+	<p class="pk5e-hint">This shop is empty. Add items below.</p>
+	{{/if}}
+	<div class="pk5e-row">
+		<select name="mergeId" style="flex: 1">{{#each mergeGroups}}<optgroup label="{{label}}">{{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</optgroup>{{/each}}</select>
+		<button type="button" data-action="mergeShop" data-tooltip="Copy that shop's stock into this one"><i class="fa-solid fa-clone"></i> Add Its Stock</button>
+	</div>
+	<div class="pk5e-row">
+		<input type="text" id="pk5e-shop-add" list="pk5e-shop-items" placeholder="Add any item, e.g. Max Revive" value="{{addText}}" autocomplete="off" style="flex: 1">
+		<datalist id="pk5e-shop-items">{{#each itemNames}}<option value="{{this}}"></option>{{/each}}</datalist>
+		<button type="button" data-action="addItem"><i class="fa-solid fa-plus"></i> Add</button>
+	</div>
+</section>
+
+{{#if hasRows}}
+<section class="pk5e-section">
+	<h3>Sale</h3>
+	<div class="pk5e-row">
+		<select name="buyerId" style="flex: 1">{{#each buyerOptions}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+		{{#if buyerMoney}}<span class="pk5e-shop-money">{{buyerMoney}}</span>{{/if}}
+	</div>
+	{{#if noCharacters}}<p class="pk5e-hint">No player characters found.</p>{{/if}}
+	<label class="pk5e-check"><input type="checkbox" name="charge" {{#if charge}}checked{{/if}}> Charge money <span class="pk5e-hint">(takes the total from the character's gp; untick to give the items for free)</span></label>
+	<label class="pk5e-check"><input type="checkbox" name="stackExisting" {{#if stackExisting}}checked{{/if}}> Add to a stack if they already have the item</label>
+	<label class="pk5e-check"><input type="checkbox" name="receipt" {{#if receipt}}checked{{/if}}> Post a receipt to chat</label>
+	<p class="pk5e-budget"><strong>Total: {{total}} gp</strong> · {{cartCount}} item type(s) in the cart{{#if cantAfford}} · <span class="pk5e-warning">they can't afford this</span>{{/if}}</p>
+	<div class="pk5e-row">
+		<button type="button" class="pk5e-primary" data-action="sell" {{#if busy}}disabled{{/if}}><i class="fa-solid fa-cash-register"></i> Sell to Character</button>
+		<button type="button" class="pk5e-small" data-action="clearCart"><i class="fa-solid fa-xmark"></i> Clear Cart</button>
+	</div>
+</section>
+{{/if}}
+{{/if}}
+</div>

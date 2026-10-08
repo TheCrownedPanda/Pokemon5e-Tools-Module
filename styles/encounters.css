@@ -99,3 +99,13 @@
 .pk5e-loot .pk5e-loot-results input[type=number] { width: 3.25rem; }
 .pk5e-loot .pk5e-loot-results label { display: flex; align-items: center; gap: 0.2rem; }
 .pk5e-loot .pk5e-grid input[type=number] { width: 100%; }
+
+/* Shop */
+.pk5e-shop .pk5e-shop-results li { gap: 0.4rem; }
+.pk5e-shop .pk5e-shop-head { font-weight: bold; border-bottom: 2px solid var(--color-border-light-tertiary, #8885); }
+.pk5e-shop .pk5e-shop-col { width: 5rem; flex: 0 0 5rem; text-align: right; }
+.pk5e-shop .pk5e-shop-total { width: 4.5rem; flex: 0 0 4.5rem; text-align: right; }
+.pk5e-shop .pk5e-shop-x { width: 2rem; flex: 0 0 2rem; }
+.pk5e-shop input.edited { outline: 2px solid var(--color-warm-2, #ff6400); }
+.pk5e-shop .pk5e-shop-money { font-weight: bold; white-space: nowrap; }
+.pk5e-shop .pk5e-grid input[type=number] { width: 5rem; }

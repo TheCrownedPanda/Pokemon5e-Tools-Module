@@ -51,6 +51,18 @@ It rolls items from the Pokémon 5e "Items & Consumables" compendium. The catego
 - **Create Items:** makes the items as world Items in a dated "Loot" folder so you can drag them out yourself.
 - **Post to Chat** lists them for the table.
 
+## Shop (GM only)
+Click the shop icon in the token controls, or the Shop button at the top of the Actors tab. Macro: `game.modules.get("pokemon5e-encounters").api.openShop()`
+
+Pick a shop and its inventory is generated: the Kanto Poké Marts (Viridian, Pewter, Cerulean, Vermilion, Lavender, Celadon, Fuchsia, Cinnabar), the Celadon Dept. Store floors, a Random Poké Mart, or an empty custom shop. Stock is unlimited.
+
+- Prices start at the Items & Consumables compendium price. Edit any price by hand (edited prices are outlined), or use the price adjustment % to scale all of them.
+- Set a quantity on each item and press **Sell to Character**. The items go straight into the character's inventory (adding to a stack if they already have it) and the total can be taken from their gp.
+- Add any compendium item to a shop, remove items you don't want, and add extra random stock.
+- Items the Kanto marts sell that aren't in the compendium (Repel, Super Repel, Max Repel, Poké Doll, Mail) are offered as simple custom items with their game prices.
+- A receipt can be posted to chat.
+- **Saved shops:** press **Save** to keep a shop (its items and any edited prices) in your world. It shows up under "Your saved shops" in every future session. To make your own version of a Kanto shop, pick it, add or remove items and change prices, then Save. The premade shop itself isn't changed. Use **Add Its Stock** to copy another shop's items into the one you're building.
+
 ## Pokédex
 Everyone gets a Pokédex button. Every account has its own.
 

@@ -1,6 +1,7 @@
 import { PokemonEncounterApp } from "./encounter-app.js";
 import { PokedexApp, refreshPokedex, syncCaught } from "./pokedex-app.js";
 import { PokemonLootApp } from "./loot-app.js";
+import { PokemonShopApp } from "./shop-app.js";
 
 export const MODULE_ID = "pokemon5e-encounters";
 
@@ -28,6 +29,19 @@ export async function openPokedex() {
 		console.error(`${MODULE_ID} | Could not open the Pokédex`, err);
 		ui.notifications.error(`The Pokédex could not open: ${err.message}`, { permanent: true });
 	}
+}
+
+let shopApp = null;
+export function openShopApp() {
+	if (!game.user.isGM) return ui.notifications.warn("Only the GM can open the shop.");
+	try {
+		if (!shopApp || !shopApp.rendered) shopApp = new PokemonShopApp();
+		shopApp.render({ force: true });
+	} catch (err) {
+		console.error(`${MODULE_ID} |`, err);
+		ui.notifications.error(`Could not open the Shop: ${err.message}`, { permanent: true });
+	}
+	return shopApp;
 }
 
 let lootApp = null;
@@ -73,6 +87,13 @@ Hooks.once("init", () => {
 		type: new foundry.data.fields.BooleanField(),
 		default: false,
 	});
+	game.settings.register(MODULE_ID, "savedShops", {
+		name: "Saved Shops",
+		scope: "world",
+		config: false,
+		type: new foundry.data.fields.ObjectField(),
+		default: {},
+	});
 	game.settings.register(MODULE_ID, "pokedexSound", {
 		name: "Pokédex Scan Sound",
 		hint: "Play a sound on your own computer when your Pokédex registers a new Pokémon.",
@@ -94,7 +115,7 @@ Hooks.once("init", () => {
 Hooks.once("ready", () => {
 	console.log(`${MODULE_ID} | loaded v${game.modules.get(MODULE_ID)?.version}`);
 	const module = game.modules.get(MODULE_ID);
-	if (module) module.api = { open: openEncounterApp, openPokedex, syncCaught, openLoot: openLootApp };
+	if (module) module.api = { open: openEncounterApp, openPokedex, syncCaught, openLoot: openLootApp, openShop: openShopApp };
 	if (!game.user.isGM) syncCaught().catch((err) => console.warn(`${MODULE_ID} | Could not sync caught Pokémon`, err));
 });
 
@@ -120,6 +141,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
 	};
 	addTool(tool);
 	addTool({ name: "pk5eLoot", title: "Pokémon Loot Generator", icon: "fa-solid fa-gem", order: 100, visible: true, button: true, onChange: () => openLootApp() });
+	addTool({ name: "pk5eShop", title: "Poké Mart (GM shop)", icon: "fa-solid fa-store", order: 101, visible: true, button: true, onChange: () => openShopApp() });
 });
 
 // Keep an open Pokédex current: tokens appearing, disappearing or being revealed, and ownership changes (catching).
@@ -154,4 +176,10 @@ Hooks.on("renderActorDirectory", (directory, html) => {
 	lootButton.innerHTML = '<i class="fa-solid fa-gem"></i> Loot';
 	lootButton.addEventListener("click", () => openLootApp());
 	header.append(lootButton);
+	const shopButton = document.createElement("button");
+	shopButton.type = "button";
+	shopButton.classList.add("pk5e-encounter-button", "pk5e-shop-button");
+	shopButton.innerHTML = '<i class="fa-solid fa-store"></i> Shop';
+	shopButton.addEventListener("click", () => openShopApp());
+	header.append(shopButton);
 });

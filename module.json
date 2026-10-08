@@ -2,7 +2,7 @@
   "id": "pokemon5e-encounters",
   "title": "Pokémon 5e Tools",
   "description": "One-click random encounters for Pokémon 5e, modeled on the poke5e.app encounter tool, with shinies, pinned Pokémon, level scaling and a per-player Pokédex.",
-  "version": "0.9.0",
+  "version": "0.11.0",
   "compatibility": {
     "minimum": "13",
     "verified": "14"

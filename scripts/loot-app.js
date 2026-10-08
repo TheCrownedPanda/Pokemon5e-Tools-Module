@@ -20,7 +20,7 @@ async function loadCatalog() {
 	const items = index.map((e) => ({ id: e._id, name: e.name, img: e.img, type: e.type, folder: e.folder ?? null, rarity: e.system?.rarity ?? "", price: e.system?.price }));
 	return buildCategories(folders, items);
 }
-const getCatalog = () => (catalogPromise ??= loadCatalog().catch((err) => { catalogPromise = null; throw err; }));
+export const getCatalog = () => (catalogPromise ??= loadCatalog().catch((err) => { catalogPromise = null; throw err; }));
 
 export class PokemonLootApp extends HandlebarsApplicationMixin(ApplicationV2) {
 	static DEFAULT_OPTIONS = {
