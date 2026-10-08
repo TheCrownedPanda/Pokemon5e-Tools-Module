@@ -4,8 +4,6 @@ A Foundry module with extra tools for people running Pokémon 5e: a random encou
 
 I made it because building encounters by hand every session was eating my prep time. It also has a Pokédex for your players, which is the part my table likes most.
 
-**Heads up on how it was made:** I came up with the feature list and tested everything at my own table, but the code was written with AI help (Claude). If that's a dealbreaker for you, no hard feelings. If you do read the code and find a bug, please open an issue.
-
 ## What you need
 - Foundry v13 or newer (I run v14)
 - dnd5e system 5.x
